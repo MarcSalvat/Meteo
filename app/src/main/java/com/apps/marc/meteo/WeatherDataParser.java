@@ -1,5 +1,8 @@
 package com.apps.marc.meteo;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,7 +27,15 @@ public class WeatherDataParser {
      * Prepare the weather high/lows for presentation.
      */
     public static String formatHighLows(double high, double low) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.getContextofApplication());
+        final String units = prefs.getString("units", "metric");
         // For presentation, assume the user doesn't care about tenths of a degree.
+
+        if (units.equals("imperial")) {
+            high = (high * 1.8) + 32;
+            low = (low * 1.8) + 32;
+        }
+
         long roundedHigh = Math.round(high);
         long roundedLow = Math.round(low);
 

@@ -1,7 +1,10 @@
 package com.apps.marc.meteo;
 
 import android.app.Fragment;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -9,8 +12,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -24,10 +29,15 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ForecastFragment extends Fragment {
-
     ArrayAdapter<String> arrayAdapter;
 
     public ForecastFragment() {
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        getWeatherFromAPI();
     }
 
     @Override
@@ -54,26 +64,27 @@ public class ForecastFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        String[] sampleData = {
-                "Today - Sunny - 22/23",
-                "Tomorrow - Foggy - 22/23",
-                "Monday - Cloudy - 22/23",
-                "Tuesday - Doom - 22/23",
-                "Wednesday - Rain - 22/23",
-                "Friday - Thunderstorms - 22/23",
-                "Saturday - Rain - 22/23"
-        };
-        List<String> weakForecast = new ArrayList<String>(Arrays.asList(sampleData));
-        arrayAdapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview, weakForecast);
+        final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        arrayAdapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview);
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(arrayAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                String itemForecastString = arrayAdapter.getItem(i);
+                Toast.makeText(getActivity(), itemForecastString, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, itemForecastString);
+                startActivity(intent);
+            }
+        });
         return rootView;
     }
 
     public void getWeatherFromAPI() {
         RequestParams params = new RequestParams();
-        final String location = "08192";
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        final String location = prefs.getString("location", "08001");
         final int days = 7;
 
         params.put("q", location);
